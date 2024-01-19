@@ -37,11 +37,14 @@ class FindMissingTranslationStrings extends Command
     {
         $locale = $this->argument('locale');
 
-        $files = File::allFiles(config('lost-in-translation.path'));
-
-        $files = Collection::make($files)->filter(function (\SplFileInfo $file) {
-            return Str::endsWith($file->getExtension(), 'php');
-        });
+        $files = Collection::make(config('lost-in-translation.paths'))
+            ->map(function (string $path) {
+                return File::allFiles($path);
+            })
+            ->flatten()
+            ->unique()->filter(function (\SplFileInfo $file) {
+                return Str::endsWith($file->getExtension(), 'php');
+            });
 
         $reported = [];
         $keys = [];

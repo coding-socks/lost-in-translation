@@ -18,8 +18,11 @@ class LostInTranslationServiceProviderTest extends TestCase
     {
         $config = $this->app->make('config')->get('lost-in-translation');
 
-        $this->assertArrayHasKey('path', $config);
-        $this->assertIsString($config['path']);
+        $this->assertArrayHasKey('paths', $config);
+        $this->assertIsArray($config['paths']);
+        $this->assertCount(2, $config['paths']);
+        $this->assertIsString($config['paths'][0]);
+        $this->assertIsString($config['paths'][1]);
 
         $this->assertArrayHasKey('locale', $config);
         $this->assertEquals('en', $config['locale']);

@@ -17,15 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Lost in Translation path
+    | Lost in Translation paths
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the path that should be used by the service.
-    | The path tells where the blade files are located.
+    | Here you may specify the paths that should be scanned by the service.
+    | The root directories of your blade and application files.
     |
     */
 
-    'path' => resource_path('views'),
+    'paths' => [
+        app_path(),
+        resource_path('views'),
+    ],
 
     /*
     |--------------------------------------------------------------------------
