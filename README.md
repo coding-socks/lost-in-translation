@@ -24,14 +24,34 @@ Example:
 php artisan lost-in-translation:find nl
 ```
 
-By default, the command detects the following in your blade files:
+### Publish
 
-- `@lang('key')` any call to the Blade directive
-- `{{ __('key') }}` any call to the `__` function
-- `{{ trans('key') }}` any call to the `trans` function
-- `{{ app('translator')->get('key') }}` any direct get call to the `translator`
-- `{{ App::make('translator')->get('key') }}` any direct get call to the `translator`
-- `{{ Lang::get('key') }}` any get call to the `Lang` facade
+Publish the configuration file only:
+
+```
+php artisan vendor:publish --tag=lost-in-translation-config
+```
+
+Publish the Command class only:
+
+```
+php artisan vendor:publish --tag=lost-in-translation-commands
+```
+
+## Defaults
+
+The command considers `app.locale` as your applications default locale.
+
+The command scans your `resources/views` and `app` directory.
+
+The command detects the following in your blade and application files:
+
+- `@lang('key')` Blade directives are compiled to `app('translator')->get('key')`
+- `__('key')` any call to the `__` function
+- `trans('key')` any call to the `trans` function
+- `app('translator')->get('key')` any direct `get`method call on the `translator`
+- `App::make('translator')->get('key')` any direct `get` method call on the `translator`
+- `Lang::get('key')` any `get` static call on the `Lang` facade
 
 ## Implementation
 
