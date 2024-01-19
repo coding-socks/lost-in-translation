@@ -2,6 +2,7 @@
 
 namespace CodingSocks\LostInTranslation;
 
+use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -29,8 +30,26 @@ class LostInTranslation
      */
     public function findInFile(SplFileInfo $file): array
     {
-        $finder = new TranslationFinder($this->compiler, $this->detect);
-        return $finder->findInFile($file);
+        $finder = new TranslationFinder($this->detect);
+
+        $str = $file->getContents();
+
+        if ($this->isBladeFile($file)) {
+            $str = $this->compiler->compileString($str);
+        }
+
+        return $finder->find($str);
+    }
+
+    /**
+     * Determine if the given file is likely a blade file.
+     *
+     * @param \Symfony\Component\Finder\SplFileInfo $file
+     * @return bool
+     */
+    protected function isBladeFile(SplFileInfo $file): bool
+    {
+        return Str::endsWith($file->getFilename(), '.blade.php');
     }
 
     /**

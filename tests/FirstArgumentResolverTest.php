@@ -68,9 +68,11 @@ EOD);
     protected function find($str): array
     {
         $finder = new TranslationFinder(
-            $this->app->make('blade.compiler'),
             config('lost-in-translation.detect')
         );
+
+        $compiler = $this->app->make('blade.compiler');
+        $str = $compiler->compileString($str);
 
         return $finder->find($str);
     }

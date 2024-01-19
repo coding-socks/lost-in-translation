@@ -15,29 +15,32 @@ class TranslationFinderTest extends TestCase
 @endenv
 
 @lang('keep')
+{{ __('keep') }}
 EOD;
 
         $finder = new TranslationFinder(
-            $this->app->make('blade.compiler'),
             config('lost-in-translation.detect')
         );
 
+        $compiler = $this->app->make('blade.compiler');
+        $str = $compiler->compileString($str);
+
         $nodes = $finder->find($str);
 
-        $this->assertCount(2, $nodes);
+        $this->assertCount(3, $nodes);
     }
 
     public function testFunctionCall()
     {
         $str = <<<'EOD'
-{{ something('skip') }}
+<?php
+something('skip');
 
-{{ __('keep') }}
-{{ trans('keep') }}
+__('keep');
+trans('keep');
 EOD;
 
         $finder = new TranslationFinder(
-            $this->app->make('blade.compiler'),
             config('lost-in-translation.detect')
         );
 
@@ -49,16 +52,16 @@ EOD;
     public function testStaticCall()
     {
         $str = <<<'EOD'
-{{ Lang::something('skip') }}
+<?php
+Lang::something('skip');
 
-{{ Lang::get('keep') }}
-{{ \Lang::get('keep') }}
-{{ Illuminate\Support\Facades\Lang::get('keep') }}
-{{ \Illuminate\Support\Facades\Lang::get('keep') }}
+Lang::get('keep');
+\Lang::get('keep');
+Illuminate\Support\Facades\Lang::get('keep');
+\Illuminate\Support\Facades\Lang::get('keep');
 EOD;
 
         $finder = new TranslationFinder(
-            $this->app->make('blade.compiler'),
             config('lost-in-translation.detect')
         );
 
@@ -70,20 +73,20 @@ EOD;
     public function testMethodCall()
     {
         $str = <<<'EOD'
-{{ app('something')->get('keep') }}
-{{ app('translator')->something('keep') }}
-{{ App::make('something')->get('skip') }}
-{{ App::make('translator')->something('skip') }}
+<?php
+app('something')->get('skip');
+app('translator')->something('skip');
+App::make('something')->get('skip');
+App::make('translator')->something('skip');
 
-{{ app('translator')->get('keep') }}
-{{ App::make('translator')->get('keep') }}
-{{ \App::make('translator')->get('keep') }}
-{{ Illuminate\Support\Facades\App::make('translator')->get('keep') }}
-{{ \Illuminate\Support\Facades\App::make('translator')->get('keep') }}
+app('translator')->get('keep');
+App::make('translator')->get('keep');
+\App::make('translator')->get('keep');
+Illuminate\Support\Facades\App::make('translator')->get('keep');
+\Illuminate\Support\Facades\App::make('translator')->get('keep');
 EOD;
 
         $finder = new TranslationFinder(
-            $this->app->make('blade.compiler'),
             config('lost-in-translation.detect')
         );
 

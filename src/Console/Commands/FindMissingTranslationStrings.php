@@ -5,6 +5,7 @@ namespace CodingSocks\LostInTranslation\Console\Commands;
 use CodingSocks\LostInTranslation\LostInTranslation;
 use CodingSocks\LostInTranslation\NonStringArgumentException;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
@@ -38,14 +39,14 @@ class FindMissingTranslationStrings extends Command
 
         $files = File::allFiles(config('lost-in-translation.path'));
 
+        $files = Collection::make($files)->filter(function (\SplFileInfo $file) {
+            return Str::endsWith($file->getExtension(), 'php');
+        });
+
         $reported = [];
         $keys = [];
 
         $this->withProgressBar($files, function ($file) use ($lit, $locale, &$reported, &$keys) {
-            if (!Str::endsWith($file->getFilename(), '.blade.php')) {
-                return;
-            }
-
             $nodes = $lit->findInFile($file);
 
             $translationKeys = $this->resolveFirstArgs($lit, $nodes);
@@ -58,6 +59,8 @@ class FindMissingTranslationStrings extends Command
                 }
             }
         });
+
+        $this->newLine();
 
         if ($this->option('sorted')) {
             sort($keys);
