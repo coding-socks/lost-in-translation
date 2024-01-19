@@ -21,7 +21,7 @@ class FindMissingTranslationStrings extends Command
      */
     protected $signature = 'lost-in-translation:find
                             {locale : The locale to be checked}
-                            {--sorted : Sorts the values before printing}';
+                            {--sorted : Sort the values before printing}';
 
     /**
      * The console command description.
