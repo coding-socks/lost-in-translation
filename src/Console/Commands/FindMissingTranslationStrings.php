@@ -5,6 +5,7 @@ namespace CodingSocks\LostInTranslation\Console\Commands;
 use Closure;
 use CodingSocks\LostInTranslation\LostInTranslation;
 use CodingSocks\LostInTranslation\NonStringArgumentException;
+use Countable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
@@ -57,9 +58,8 @@ class FindMissingTranslationStrings extends Command
             });
 
         $reported = [];
-        $keys = [];
 
-        $this->showProgress($files, function (SplFileInfo $file, ProgressBar $bar) use ($lit, $locale, &$reported, &$keys, &$barCopy) {
+        $this->trackProgress($files, function (SplFileInfo $file) use ($lit, $locale, &$reported) {
             $nodes = $lit->findInFile($file);
 
             $translationKeys = $this->resolveFirstArgs($lit, $nodes);
@@ -68,10 +68,11 @@ class FindMissingTranslationStrings extends Command
                 if (!Lang::has($key, $locale) && !array_key_exists($key, $reported)) {
                     // TODO: find a better way to check uniqueness
                     $reported[$key] = true;
-                    $keys[] = $key;
                 }
             }
         })->clear();
+
+        $keys = array_keys($reported);
 
         if ($this->option('sorted')) {
             sort($keys);
@@ -85,26 +86,20 @@ class FindMissingTranslationStrings extends Command
     /**
      * Execute a given callback while advancing a progress bar.
      *
-     * @param  iterable|int  $totalSteps
+     * @param  iterable  $totalSteps
      * @param  \Closure  $callback
      * @return \Symfony\Component\Console\Helper\ProgressBar
      */
-    protected function showProgress($totalSteps, Closure $callback)
+    protected function trackProgress(Countable|array $totalSteps, Closure $callback)
     {
-        $bar = $this->output->createProgressBar(
-            is_iterable($totalSteps) ? count($totalSteps) : $totalSteps
-        );
+        $bar = $this->output->createProgressBar(count($totalSteps));
 
         $bar->start();
 
-        if (is_iterable($totalSteps)) {
-            foreach ($totalSteps as $value) {
-                $callback($value, $bar);
+        foreach ($totalSteps as $value) {
+            $callback($value, $bar);
 
-                $bar->advance();
-            }
-        } else {
-            $callback($bar);
+            $bar->advance();
         }
 
         $bar->finish();
