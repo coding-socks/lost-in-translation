@@ -39,6 +39,13 @@ class FindMissingTranslationStrings extends Command
     public function handle(LostInTranslation $lit)
     {
         $locale = $this->argument('locale');
+        $baseLocale = config('lost-in-translation.locale');
+
+        if ($locale === $baseLocale) {
+            $this->error("Locale `{$locale}` must be different from `{$baseLocale}`.");
+
+            return;
+        }
 
         $files = Collection::make(config('lost-in-translation.paths'))
             ->map(function (string $path) {
