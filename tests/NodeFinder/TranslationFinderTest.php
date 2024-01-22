@@ -39,6 +39,7 @@ something('skip');
 
 __('keep');
 trans('keep');
+trans_choice('keep', 10);
 EOD;
 
         $finder = new TranslationFinder(
@@ -47,7 +48,7 @@ EOD;
 
         $nodes = $finder->find($str);
 
-        $this->assertCount(2, $nodes);
+        $this->assertCount(3, $nodes);
     }
 
     public function testStaticCall()

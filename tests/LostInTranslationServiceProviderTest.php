@@ -28,7 +28,7 @@ class LostInTranslationServiceProviderTest extends TestCase
 
         $this->assertArrayHasKey('detect', $config);
         $this->assertEquals([
-            'function' => ['__', 'trans'],
+            'function' => ['__', 'trans', 'trans_choice'],
             'method-function' => [
                 ["app('translator')", 'get'],
             ],
