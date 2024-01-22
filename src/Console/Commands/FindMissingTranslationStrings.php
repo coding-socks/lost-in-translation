@@ -2,18 +2,15 @@
 
 namespace CodingSocks\LostInTranslation\Console\Commands;
 
-use Closure;
 use CodingSocks\LostInTranslation\LostInTranslation;
-use CodingSocks\LostInTranslation\NonStringArgumentException;
+use CodingSocks\LostInTranslation\MissingTranslationFileVisitor;
 use Countable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Finder\SplFileInfo;
 
 class FindMissingTranslationStrings extends Command
 {
@@ -33,13 +30,6 @@ class FindMissingTranslationStrings extends Command
      * @var string
      */
     protected $description = 'Find missing translation strings in your Laravel blade files';
-
-    /**
-     * Buffer for invalid arguments.
-     *
-     * @var string[]
-     */
-    protected $invalidArguments;
 
     /**
      * Execute the console command.
@@ -64,15 +54,17 @@ class FindMissingTranslationStrings extends Command
                 return Str::endsWith($file->getExtension(), 'php');
             });
 
-        $missing = $this->trackProgress($files, $this->makeMissingTranslationFinderCallback($lit, $locale));
+        $visitor = new MissingTranslationFileVisitor($locale, $lit);
 
-        $missing = array_unique(array_merge(...$missing));
+        $this->trackProgress($files, $visitor);
+
+        $missing = array_unique($visitor->getTranslations());
 
         if ($this->output->getVerbosity() >= $this->parseVerbosity(OutputInterface::VERBOSITY_VERBOSE)) {
             $errOutput = $this->output->getErrorStyle();
 
-            foreach ($this->invalidArguments as $argument) {
-                $errOutput->writeln("skipping dynamic language key: `{$argument}`");
+            foreach ($visitor->getErrors() as $error) {
+                $errOutput->writeln($error);
             }
         }
 
@@ -89,21 +81,17 @@ class FindMissingTranslationStrings extends Command
      * Execute a given callback while advancing a progress bar.
      *
      * @param \Countable|array $totalSteps
-     * @param \Closure $callback
-     * @return array
+     * @param callable $callback
+     * @return void
      */
-    protected function trackProgress(Countable|array $totalSteps, Closure $callback)
+    protected function trackProgress(Countable|array $totalSteps, callable $callback)
     {
-        $items = [];
-
         if ($this->option('no-progress')) {
             foreach ($totalSteps as $value) {
-                if (($item = $callback($value)) && $item !== null) {
-                    $items[] = $item;
-                }
+                $callback($value);
             }
 
-            return $items;
+            return;
         }
 
         $bar = $this->output->createProgressBar(count($totalSteps));
@@ -111,61 +99,12 @@ class FindMissingTranslationStrings extends Command
         $bar->start();
 
         foreach ($totalSteps as $value) {
-            if (($item = $callback($value)) && $item !== null) {
-                $items[] = $item;
-            }
+            $callback($value);
 
             $bar->advance();
         }
 
         $bar->finish();
         $bar->clear();
-
-        return $items;
-    }
-
-    /**
-     * @param \CodingSocks\LostInTranslation\LostInTranslation $lit
-     * @param array $nodes
-     * @return array
-     */
-    protected function resolveFirstArgs(LostInTranslation $lit, array $nodes): array
-    {
-        $translationKeys = [];
-        foreach ($nodes as $node) {
-            try {
-                if (($key = $lit->resolveFirstArg($node)) !== null) {
-                    $translationKeys[] = $key;
-                }
-            } catch (NonStringArgumentException $e) {
-                $this->invalidArguments[] = $e->argument;
-            }
-        }
-        return array_unique($translationKeys);
-    }
-
-    /**
-     * @param \CodingSocks\LostInTranslation\LostInTranslation $lit
-     * @param string|null $locale
-     * @return \Closure
-     */
-    protected function makeMissingTranslationFinderCallback(LostInTranslation $lit, string|null $locale): Closure
-    {
-        return function (SplFileInfo $file) use ($lit, $locale) {
-            $nodes = $lit->findInFile($file);
-
-            $translationKeys = $this->resolveFirstArgs($lit, $nodes);
-
-            $missing = [];
-
-            foreach ($translationKeys as $key) {
-                if (!Lang::has($key, $locale)) {
-                    // TODO: find a better way to check uniqueness
-                    $missing[] = $key;
-                }
-            }
-
-            return $missing;
-        };
     }
 }
