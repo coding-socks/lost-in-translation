@@ -44,7 +44,9 @@ php artisan vendor:publish --tag=lost-in-translation-commands
 
 The command considers `app.locale` as your applications default locale.
 
-The command scans your `resources/views` and `app` directory.
+The command scans your `lang` directory for comparison with the default and target locale.
+
+The command scans your `app`, and `resources/views` directory for translation retrieval.
 
 The command detects the following in your blade and application files:
 
@@ -54,7 +56,7 @@ The command detects the following in your blade and application files:
 - `app('translator')->get('key')` any direct `get`method call on the `translator`
 - `App::make('translator')->get('key')` any direct `get` method call on the `translator`
 - `Lang::get('key')` any `get` static call on the `Lang` facade
-- `<<<'blade'` incline components in nowdoc with `blade` label are compiled and their content is scanned.
+- `<<<'blade'` inline components in nowdoc with `blade` label are compiled and their content is scanned.
 
 ## Help
 
