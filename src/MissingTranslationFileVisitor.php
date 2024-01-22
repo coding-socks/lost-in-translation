@@ -37,7 +37,7 @@ class MissingTranslationFileVisitor
         $translationKeys = $this->resolveFirstArgs($nodes);
 
         foreach ($translationKeys as $key) {
-            if (!Lang::has($key, $this->locale)) {
+            if (!Lang::hasForLocale($key, $this->locale)) {
                 $this->translations[] = $key;
             }
         }
