@@ -50,7 +50,8 @@ class FindMissingTranslationStrings extends Command
                 return File::allFiles($path);
             })
             ->flatten()
-            ->unique()->filter(function (\SplFileInfo $file) {
+            ->unique()
+            ->filter(function (\SplFileInfo $file) {
                 return Str::endsWith($file->getExtension(), 'php');
             });
 
@@ -58,15 +59,9 @@ class FindMissingTranslationStrings extends Command
 
         $this->trackProgress($files, $visitor);
 
+        $this->printErrors($visitor->getErrors(), $this->output->getErrorStyle());
+
         $missing = array_unique($visitor->getTranslations());
-
-        if ($this->output->getVerbosity() >= $this->parseVerbosity(OutputInterface::VERBOSITY_VERBOSE)) {
-            $errOutput = $this->output->getErrorStyle();
-
-            foreach ($visitor->getErrors() as $error) {
-                $errOutput->writeln($error);
-            }
-        }
 
         if ($this->option('sorted')) {
             sort($missing);
@@ -106,5 +101,19 @@ class FindMissingTranslationStrings extends Command
 
         $bar->finish();
         $bar->clear();
+    }
+
+    /**
+     * @param array $errors
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return void
+     */
+    protected function printErrors(array $errors, OutputInterface $output): void
+    {
+        if ($this->output->getVerbosity() >= $this->parseVerbosity(OutputInterface::VERBOSITY_VERBOSE)) {
+            foreach ($errors as $error) {
+                $output->writeln($error);
+            }
+        }
     }
 }
