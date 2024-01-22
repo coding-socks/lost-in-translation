@@ -34,6 +34,13 @@ class FindMissingTranslationStrings extends Command
     protected $description = 'Find missing translation strings in your Laravel blade files';
 
     /**
+     * Buffer for invalid arguments.
+     *
+     * @var string[]
+     */
+    protected $invalidArguments;
+
+    /**
      * Execute the console command.
      */
     public function handle(LostInTranslation $lit)
@@ -58,6 +65,7 @@ class FindMissingTranslationStrings extends Command
 
         $reported = [];
 
+        $this->invalidArguments = [];
         $this->trackProgress($files, function (SplFileInfo $file) use ($lit, $locale, &$reported) {
             $nodes = $lit->findInFile($file);
 
@@ -70,6 +78,14 @@ class FindMissingTranslationStrings extends Command
                 }
             }
         })->clear();
+
+        if ($this->output->getVerbosity() >= $this->parseVerbosity(OutputInterface::VERBOSITY_VERBOSE)) {
+            $errOutput = $this->output->getErrorStyle();
+
+            foreach ($this->invalidArguments as $argument) {
+                $errOutput->writeln("skipping dynamic language key: `{$argument}`");
+            }
+        }
 
         $keys = array_keys($reported);
 
@@ -85,8 +101,8 @@ class FindMissingTranslationStrings extends Command
     /**
      * Execute a given callback while advancing a progress bar.
      *
-     * @param  iterable  $totalSteps
-     * @param  \Closure  $callback
+     * @param \Countable|array $totalSteps
+     * @param \Closure $callback
      * @return \Symfony\Component\Console\Helper\ProgressBar
      */
     protected function trackProgress(Countable|array $totalSteps, Closure $callback)
@@ -120,7 +136,7 @@ class FindMissingTranslationStrings extends Command
                     $translationKeys[] = $key;
                 }
             } catch (NonStringArgumentException $e) {
-                $this->warn("skipping dynamic language key: `{$e->argument}`", OutputInterface::VERBOSITY_VERBOSE);
+                $this->invalidArguments[] = $e->argument;
             }
         }
         return array_unique($translationKeys);
