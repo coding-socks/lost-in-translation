@@ -2,31 +2,34 @@
 
 namespace CodingSocks\LostInTranslation;
 
-use Illuminate\Support\Facades\Lang;
 use Symfony\Component\Finder\SplFileInfo;
 
 class MissingTranslationFileVisitor
 {
-    /** @var string[] Buffer for valid arguments. */
-    protected $translations = [];
-
-    /** @var string[] Buffer for invalid arguments. */
-    protected $errors = [];
-
     /** @var string */
     protected $locale;
 
     /** @var \CodingSocks\LostInTranslation\LostInTranslation */
     protected $lit;
 
+    /** @var \Illuminate\Contracts\Translation\Translator */
+    protected $translator;
+
+    /** @var string[] Buffer for valid arguments. */
+    protected $translations = [];
+
+    /** @var string[] Buffer for invalid arguments. */
+    protected $errors = [];
+
     /**
      * @param $locale
      * @param $lit
      */
-    public function __construct($locale, $lit)
+    public function __construct($locale, $lit, $translator)
     {
         $this->locale = $locale;
         $this->lit = $lit;
+        $this->translator = $translator;
     }
 
 
@@ -37,7 +40,7 @@ class MissingTranslationFileVisitor
         $translationKeys = $this->resolveFirstArgs($nodes);
 
         foreach ($translationKeys as $key) {
-            if (!Lang::hasForLocale($key, $this->locale)) {
+            if (!$this->translator->hasForLocale($key, $this->locale)) {
                 $this->translations[] = $key;
             }
         }

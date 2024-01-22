@@ -3,6 +3,7 @@
 namespace CodingSocks\LostInTranslation;
 
 use CodingSocks\LostInTranslation\Console\Commands\FindMissingTranslationStrings;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\ServiceProvider;
 
 class LostInTranslationServiceProvider extends ServiceProvider
@@ -29,6 +30,10 @@ class LostInTranslationServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->registerToBePublished();
         }
+
+        $this->app->when(FindMissingTranslationStrings::class)
+            ->needs(Filesystem::class)
+            ->give('files');
 
         $this->app->singleton(LostInTranslation::class, function ($app) {
             return new LostInTranslation($app->make('blade.compiler'), $this->detectionConfigurations());

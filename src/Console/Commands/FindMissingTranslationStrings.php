@@ -6,11 +6,13 @@ use CodingSocks\LostInTranslation\LostInTranslation;
 use CodingSocks\LostInTranslation\MissingTranslationFileVisitor;
 use Countable;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Translation\Translator;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Finder\SplFileInfo;
 
 class FindMissingTranslationStrings extends Command
 {
@@ -31,40 +33,52 @@ class FindMissingTranslationStrings extends Command
      */
     protected $description = 'Find missing translation strings in your Laravel blade files';
 
+    /** @var \Illuminate\Contracts\Translation\Translator The translator instance. */
+    protected Translator $translator;
+
+    /** @var \Illuminate\Filesystem\Filesystem The filesystem instance. */
+    protected Filesystem $files;
+
+    /**
+     * @param \Illuminate\Contracts\Translation\Translator $translator
+     * @param \Illuminate\Filesystem\Filesystem $files
+     */
+    public function __construct(Translator $translator, Filesystem $files)
+    {
+        parent::__construct();
+
+        $this->translator = $translator;
+        $this->files = $files;
+    }
+
     /**
      * Execute the console command.
      */
     public function handle(LostInTranslation $lit)
     {
-        $locale = $this->argument('locale');
         $baseLocale = config('lost-in-translation.locale');
+        $locale = $this->argument('locale');
 
-        if ($locale === $baseLocale) {
+        if ($baseLocale === $locale) {
             $this->error("Locale `{$locale}` must be different from `{$baseLocale}`.");
 
             return;
         }
 
-        $files = Collection::make(config('lost-in-translation.paths'))
-            ->map(function (string $path) {
-                return File::allFiles($path);
-            })
-            ->flatten()
-            ->unique()
-            ->filter(function (\SplFileInfo $file) {
-                return Str::endsWith($file->getExtension(), 'php');
-            });
+        $missing = $this->findInArray($baseLocale, $locale);
 
-        $visitor = new MissingTranslationFileVisitor($locale, $lit);
+        $files = $this->collectFiles();
 
-        $this->trackProgress($files, $visitor);
+        $visitor = new MissingTranslationFileVisitor($locale, $lit, $this->translator);
+
+        $this->traverse($files, $visitor);
 
         $this->printErrors($visitor->getErrors(), $this->output->getErrorStyle());
 
-        $missing = array_unique($visitor->getTranslations());
+        $missing = $missing->merge($visitor->getTranslations())->unique();
 
         if ($this->option('sorted')) {
-            sort($missing);
+            $missing = $missing->sort();
         }
 
         foreach ($missing as $key) {
@@ -79,7 +93,7 @@ class FindMissingTranslationStrings extends Command
      * @param callable $callback
      * @return void
      */
-    protected function trackProgress(Countable|array $totalSteps, callable $callback)
+    protected function traverse(Countable|array $totalSteps, callable $callback)
     {
         if ($this->option('no-progress')) {
             foreach ($totalSteps as $value) {
@@ -115,5 +129,39 @@ class FindMissingTranslationStrings extends Command
                 $output->writeln($error);
             }
         }
+    }
+
+    /**
+     * @param string $baseLocale
+     * @param string|null $locale
+     * @return \Illuminate\Support\Collection
+     */
+    protected function findInArray(mixed $baseLocale, string|null $locale)
+    {
+        return Collection::make($this->files->files(lang_path($baseLocale)))
+            ->mapWithKeys(function (SplFileInfo $file) {
+                return [$file->getFilenameWithoutExtension() => $this->translator->get($file->getFilenameWithoutExtension())];
+            })
+            ->dot()
+            ->keys()
+            ->filter(function ($key) use ($locale) {
+                return !$this->translator->hasForLocale($key, $locale);
+            });
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function collectFiles()
+    {
+        return Collection::make(config('lost-in-translation.paths'))
+            ->map(function (string $path) {
+                return $this->files->allFiles($path);
+            })
+            ->flatten()
+            ->unique()
+            ->filter(function (\SplFileInfo $file) {
+                return Str::endsWith($file->getExtension(), 'php');
+            });
     }
 }
