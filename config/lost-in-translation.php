@@ -45,6 +45,7 @@ return [
         'function' => [
             '__',    // __('key')
             'trans', // trans('key')
+            'trans_choice', // trans_choice('key', x)
         ],
 
         'method-function' => [

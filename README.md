@@ -53,6 +53,7 @@ The command detects the following in your blade and application files:
 - `@lang('key')` Blade directives are compiled to `app('translator')->get('key')`
 - `__('key')` any call to the `__` function
 - `trans('key')` any call to the `trans` function
+- `trans_choice('key', x)` any call to the `trans_choice` function
 - `app('translator')->get('key')` any direct `get`method call on the `translator`
 - `App::make('translator')->get('key')` any direct `get` method call on the `translator`
 - `Lang::get('key')` any `get` static call on the `Lang` facade
