@@ -2,35 +2,24 @@
 
 namespace CodingSocks\LostInTranslation;
 
+use PhpParser\Node\Scalar\String_;
 use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\FindingVisitor;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
-use PhpParser\PrettyPrinter\Standard;
 
-class TranslationFinder
+class BladeNowdocFinder
 {
-    /** @var array  */
-    private array $detect;
-
     /** @var \PhpParser\Parser */
     private Parser $parser;
 
-    /** @var \PhpParser\PrettyPrinter */
-    private $printer;
-
     /**
-     * @param array $detect
      * @param \PhpParser\Parser|null $parser
-     * @param \PhpParser\PrettyPrinter $printer
      */
     public function __construct(
-        array $detect,
         Parser $parser = null,
-        $printer = null
     ) {
-        $this->detect = $detect;
         $this->parser = $parser ?? (new ParserFactory())->createForHostVersion();
-        $this->printer = $printer ?? new Standard();
     }
 
     /**
@@ -47,7 +36,10 @@ class TranslationFinder
             return [];
         }
 
-        $visitor = new TranslationFindingVisitor($this->detect, $this->printer);
+        $visitor = new FindingVisitor(function ($node) {
+            return $node instanceof String_
+                && strtolower($node->getAttribute('docLabel', '')) === 'blade';
+        });
 
         $traverser = new NodeTraverser();
         $traverser->addVisitor($visitor); // For compatibility with ^4.10

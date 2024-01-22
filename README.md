@@ -52,6 +52,7 @@ The command detects the following in your blade and application files:
 - `app('translator')->get('key')` any direct `get`method call on the `translator`
 - `App::make('translator')->get('key')` any direct `get` method call on the `translator`
 - `Lang::get('key')` any `get` static call on the `Lang` facade
+- `<<<'blade'` incline components in nowdoc with `blade` label are compiled and their content is scanned.
 
 ## Implementation
 

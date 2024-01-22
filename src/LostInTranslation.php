@@ -36,9 +36,20 @@ class LostInTranslation
 
         if ($this->isBladeFile($file)) {
             $str = $this->compiler->compileString($str);
+
+            return $finder->find($str);
         }
 
-        return $finder->find($str);
+        $found = [];
+        $nowdocFinder = new BladeNowdocFinder();
+
+        foreach ($nowdocFinder->find($str) as $node) {
+            $str = $this->compiler->compileString($node->value);
+
+            array_push($found, ...$finder->find($str));
+        }
+
+        return array_merge($found, $finder->find($str));
     }
 
     /**

@@ -24,7 +24,8 @@ class FindMissingTranslationStrings extends Command
      */
     protected $signature = 'lost-in-translation:find
                             {locale : The locale to be checked}
-                            {--sorted : Sort the values before printing}';
+                            {--sorted : Sort the values before printing}
+                            {--no-progress : Do not show the progress bar}';
 
     /**
      * The console command description.
@@ -63,21 +64,9 @@ class FindMissingTranslationStrings extends Command
                 return Str::endsWith($file->getExtension(), 'php');
             });
 
-        $reported = [];
+        $missing = $this->trackProgress($files, $this->makeMissingTranslationFinderCallback($lit, $locale));
 
-        $this->invalidArguments = [];
-        $this->trackProgress($files, function (SplFileInfo $file) use ($lit, $locale, &$reported) {
-            $nodes = $lit->findInFile($file);
-
-            $translationKeys = $this->resolveFirstArgs($lit, $nodes);
-
-            foreach ($translationKeys as $key) {
-                if (!Lang::has($key, $locale) && !array_key_exists($key, $reported)) {
-                    // TODO: find a better way to check uniqueness
-                    $reported[$key] = true;
-                }
-            }
-        })->clear();
+        $missing = array_unique(array_merge(...$missing));
 
         if ($this->output->getVerbosity() >= $this->parseVerbosity(OutputInterface::VERBOSITY_VERBOSE)) {
             $errOutput = $this->output->getErrorStyle();
@@ -87,13 +76,11 @@ class FindMissingTranslationStrings extends Command
             }
         }
 
-        $keys = array_keys($reported);
-
         if ($this->option('sorted')) {
-            sort($keys);
+            sort($missing);
         }
 
-        foreach ($keys as $key) {
+        foreach ($missing as $key) {
             $this->line(OutputFormatter::escape($key));
         }
     }
@@ -103,23 +90,38 @@ class FindMissingTranslationStrings extends Command
      *
      * @param \Countable|array $totalSteps
      * @param \Closure $callback
-     * @return \Symfony\Component\Console\Helper\ProgressBar
+     * @return array
      */
     protected function trackProgress(Countable|array $totalSteps, Closure $callback)
     {
+        $items = [];
+
+        if ($this->option('no-progress')) {
+            foreach ($totalSteps as $value) {
+                if (($item = $callback($value)) && $item !== null) {
+                    $items[] = $item;
+                }
+            }
+
+            return $items;
+        }
+
         $bar = $this->output->createProgressBar(count($totalSteps));
 
         $bar->start();
 
         foreach ($totalSteps as $value) {
-            $callback($value, $bar);
+            if (($item = $callback($value)) && $item !== null) {
+                $items[] = $item;
+            }
 
             $bar->advance();
         }
 
         $bar->finish();
+        $bar->clear();
 
-        return $bar;
+        return $items;
     }
 
     /**
@@ -140,5 +142,30 @@ class FindMissingTranslationStrings extends Command
             }
         }
         return array_unique($translationKeys);
+    }
+
+    /**
+     * @param \CodingSocks\LostInTranslation\LostInTranslation $lit
+     * @param string|null $locale
+     * @return \Closure
+     */
+    protected function makeMissingTranslationFinderCallback(LostInTranslation $lit, string|null $locale): Closure
+    {
+        return function (SplFileInfo $file) use ($lit, $locale) {
+            $nodes = $lit->findInFile($file);
+
+            $translationKeys = $this->resolveFirstArgs($lit, $nodes);
+
+            $missing = [];
+
+            foreach ($translationKeys as $key) {
+                if (!Lang::has($key, $locale)) {
+                    // TODO: find a better way to check uniqueness
+                    $missing[] = $key;
+                }
+            }
+
+            return $missing;
+        };
     }
 }
