@@ -1,8 +1,9 @@
 <?php
 
-namespace CodingSocks\LostInTranslation\Tests;
+namespace CodingSocks\LostInTranslation\Tests\NodeFinder;
 
-use CodingSocks\LostInTranslation\TranslationFinder;
+use CodingSocks\LostInTranslation\NodeFinder\TranslationFinder;
+use CodingSocks\LostInTranslation\Tests\TestCase;
 
 class TranslationFinderTest extends TestCase
 {

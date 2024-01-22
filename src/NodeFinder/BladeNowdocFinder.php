@@ -1,6 +1,6 @@
 <?php
 
-namespace CodingSocks\LostInTranslation;
+namespace CodingSocks\LostInTranslation\NodeFinder;
 
 use PhpParser\Node\Scalar\String_;
 use PhpParser\NodeTraverser;

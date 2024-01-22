@@ -3,8 +3,8 @@
 namespace CodingSocks\LostInTranslation\Tests;
 
 use CodingSocks\LostInTranslation\FirstArgumentResolver;
+use CodingSocks\LostInTranslation\NodeFinder\TranslationFinder;
 use CodingSocks\LostInTranslation\NonStringArgumentException;
-use CodingSocks\LostInTranslation\TranslationFinder;
 
 class FirstArgumentResolverTest extends TestCase
 {

@@ -2,6 +2,8 @@
 
 namespace CodingSocks\LostInTranslation;
 
+use CodingSocks\LostInTranslation\NodeFinder\BladeNowdocFinder;
+use CodingSocks\LostInTranslation\NodeFinder\TranslationFinder;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
 use Symfony\Component\Finder\SplFileInfo;

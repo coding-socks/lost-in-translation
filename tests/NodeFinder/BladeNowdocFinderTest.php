@@ -1,9 +1,9 @@
 <?php
 
-namespace CodingSocks\LostInTranslation\Tests;
+namespace CodingSocks\LostInTranslation\Tests\NodeFinder;
 
-use CodingSocks\LostInTranslation\BladeNowdocFinder;
-use CodingSocks\LostInTranslation\TranslationFinder;
+use CodingSocks\LostInTranslation\NodeFinder\BladeNowdocFinder;
+use CodingSocks\LostInTranslation\Tests\TestCase;
 
 class BladeNowdocFinderTest extends TestCase
 {

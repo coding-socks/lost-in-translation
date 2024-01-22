@@ -3,7 +3,6 @@
 namespace CodingSocks\LostInTranslation\Tests;
 
 use CodingSocks\LostInTranslation\LostInTranslation;
-use CodingSocks\LostInTranslation\TranslationFinder;
 
 class LostInTranslationServiceProviderTest extends TestCase
 {
