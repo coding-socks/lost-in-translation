@@ -38,7 +38,6 @@ class MissingTranslationFileVisitor
 
         foreach ($translationKeys as $key) {
             if (!Lang::has($key, $this->locale)) {
-                // TODO: find a better way to check uniqueness
                 $this->translations[] = $key;
             }
         }
