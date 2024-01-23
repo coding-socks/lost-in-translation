@@ -7,7 +7,7 @@ This package helps to find missing translation strings in your Laravel blade fil
 You can easily install this package using Composer, by running the following command:
 
 ```
-composer require coding-socks/lost-in-translation
+composer require coding-socks/lost-in-translation --dev
 ```
 
 ## Usage
