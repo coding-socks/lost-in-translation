@@ -11,15 +11,15 @@
   ],
   "require": {
     "php": "^8.0",
-    "illuminate/console": "^9.0 || ^10.0",
-    "illuminate/filesystem": "^9.0 || ^10.0",
-    "illuminate/support": "^9.0 || ^10.0",
-    "illuminate/translation": "^9.0 || ^10.0",
-    "illuminate/view": "^9.0 || ^10.0",
+    "illuminate/console": "^9.0 || ^10.0 || ^11.0",
+    "illuminate/filesystem": "^9.0 || ^10.0 || ^11.0",
+    "illuminate/support": "^9.0 || ^10.0 || ^11.0",
+    "illuminate/translation": "^9.0 || ^10.0 || ^11.0",
+    "illuminate/view": "^9.0 || ^10.0 || ^11.0",
     "nikic/php-parser": "^4.18 || ^5.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^7.3 || ^8.0",
+    "orchestra/testbench": "^7.3 || ^8.0 || ^9.0",
     "phpunit/phpunit": "^9.5"
   },
   "autoload": {
