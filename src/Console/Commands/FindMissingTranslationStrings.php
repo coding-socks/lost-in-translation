@@ -59,12 +59,6 @@ class FindMissingTranslationStrings extends Command
         $baseLocale = config('lost-in-translation.locale');
         $locale = $this->argument('locale');
 
-        if ($baseLocale === $locale) {
-            $this->error("Locale `{$locale}` must be different from `{$baseLocale}`.");
-
-            return;
-        }
-
         $missing = $this->findInArray($baseLocale, $locale);
 
         $files = $this->collectFiles();
@@ -133,11 +127,14 @@ class FindMissingTranslationStrings extends Command
 
     /**
      * @param string $baseLocale
-     * @param string|null $locale
+     * @param mixed $locale
      * @return \Illuminate\Support\Collection
      */
-    protected function findInArray(mixed $baseLocale, string|null $locale)
+    protected function findInArray(string $baseLocale, mixed $locale)
     {
+        if ($baseLocale === $locale) {
+            return Collection::empty();
+        }
         return Collection::make($this->files->files(lang_path($baseLocale)))
             ->mapWithKeys(function (SplFileInfo $file) {
                 return [$file->getFilenameWithoutExtension() => $this->translator->get($file->getFilenameWithoutExtension())];
