@@ -136,6 +136,9 @@ class FindMissingTranslationStrings extends Command
             return Collection::empty();
         }
         return Collection::make($this->files->files(lang_path($baseLocale)))
+            ->filter(function (string $file) {
+                return is_array($this->files->getRequire($file));
+            })
             ->mapWithKeys(function (SplFileInfo $file) {
                 return [$file->getFilenameWithoutExtension() => $this->translator->get($file->getFilenameWithoutExtension())];
             })
