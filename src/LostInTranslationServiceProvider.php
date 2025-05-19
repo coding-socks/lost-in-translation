@@ -4,6 +4,8 @@ namespace CodingSocks\LostInTranslation;
 
 use CodingSocks\LostInTranslation\Console\Commands\FindMissingTranslationStrings;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
 class LostInTranslationServiceProvider extends ServiceProvider
@@ -42,6 +44,12 @@ class LostInTranslationServiceProvider extends ServiceProvider
         $this->app->singleton('lost-in-translation', function ($app) {
             return $app->make(LostInTranslation::class);
         });
+
+        if (! method_exists(Collection::class, 'dot') && ! Collection::hasMacro('dot')) {
+            Collection::macro('dot', function () {
+                return new Collection(Arr::dot($this->all()));
+            });
+        }
     }
 
     /**
