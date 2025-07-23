@@ -3,6 +3,7 @@
 namespace CodingSocks\LostInTranslation\Tests;
 
 use CodingSocks\LostInTranslation\LostInTranslation;
+use Illuminate\Support\Collection;
 
 class LostInTranslationServiceProviderTest extends TestCase
 {
@@ -41,5 +42,16 @@ class LostInTranslationServiceProviderTest extends TestCase
                 ['\Illuminate\Support\Facades\Lang', 'get'],
             ],
         ], $config['detect']);
+    }
+
+    public function testCollectionMacro()
+    {
+        $value = Collection::make([
+            'foo' => [
+                'bar' => 'baz'
+            ],
+        ])->dot()->all();
+
+        $this->assertEquals(['foo.bar' => 'baz'], $value);
     }
 }
