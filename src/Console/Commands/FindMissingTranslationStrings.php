@@ -8,6 +8,7 @@ use Countable;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Formatter\OutputFormatter;
@@ -131,21 +132,31 @@ class FindMissingTranslationStrings extends Command
      * @return \Illuminate\Support\Collection
      */
     protected function findInArray(string $baseLocale, mixed $locale)
+
     {
         if ($baseLocale === $locale) {
             return Collection::empty();
         }
-        return Collection::make($this->files->files(lang_path($baseLocale)))
-            ->mapWithKeys(function (SplFileInfo $file) {
-                return [$file->getFilenameWithoutExtension() => $this->translator->get($file->getFilenameWithoutExtension())];
-            })
-            ->dot()
-            ->keys()
+
+        $data = Collection::make($this->translator->get('*'));
+
+        if ($this->files->exists(lang_path($baseLocale))) {
+            $data = $data->merge(
+                Arr::dot(
+                    Collection::make($this->files->files(lang_path($baseLocale)))
+                        ->mapWithKeys(function (SplFileInfo $file) {
+                            return [$file->getFilenameWithoutExtension() => $this->translator->get($file->getFilenameWithoutExtension())];
+                        })
+                        ->toArray()
+                )
+            );
+        }
+
+        return $data->keys()
             ->filter(function ($key) use ($locale) {
                 return !$this->translator->hasForLocale($key, $locale);
             });
     }
-
     /**
      * @return mixed
      */

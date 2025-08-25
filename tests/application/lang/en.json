@@ -1,0 +1,4 @@
+{
+  "global_key": "this is a global key",
+  "key_in_both": "both should have this key"
+}
