@@ -64,6 +64,12 @@ jobs:
         run: composer validate
 
       - name: Install dependencies
+        env:
+          # Laravel 9, 10, and 11 are past their security support, so every remaining
+          # release of them is flagged by a security advisory. Composer 2.10 refuses to
+          # install flagged packages by default, which leaves those matrix entries
+          # unresolvable. They are only installed here to run the test suite against.
+          COMPOSER_NO_BLOCKING: 1
         run: |
           composer require "illuminate/support:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" --no-interaction --no-update
           composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
